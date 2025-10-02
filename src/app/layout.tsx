@@ -1,7 +1,5 @@
 import type { Metadata } from 'next';
-import AppProviders from '@/app-provider';
-import ThemeProvider from '@/components/ThemeProvider';
-import ClientLayout from '@/components/ClientLayout';
+import RootLayoutClient from '@/components/RootLayoutClient';
 
 export const metadata: Metadata = {
   title: '애매한 텍스트 분석기',
@@ -14,13 +12,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ko">
-      <body>
-        <AppProviders>
-          <ThemeProvider>
-            <ClientLayout>{children}</ClientLayout>
-          </ThemeProvider>
-        </AppProviders>
+    <html lang="ko" suppressHydrationWarning>
+      <body suppressHydrationWarning>
+        <RootLayoutClient>{children}</RootLayoutClient>
       </body>
     </html>
   );
