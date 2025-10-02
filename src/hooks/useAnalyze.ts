@@ -1,9 +1,9 @@
 import { useMutation } from '@tanstack/react-query';
 import { postAnalyze } from '@/services/analyze.service';
-import type { ScoreResponse } from '@/types';
+import type { AnalysisResult } from '@/types';
 
 export function useAnalyze() {
-  return useMutation<ScoreResponse, Error, { text: string }>({
+  return useMutation<AnalysisResult, Error, { text: string }>({
     mutationFn: ({ text }) => postAnalyze(text),
   });
 }

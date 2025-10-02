@@ -1,73 +1,217 @@
+// src/containers/HomeContainer.tsx
 'use client';
 
-import styled from '@emotion/styled';
 import { useState } from 'react';
-import { useAnalyze } from '@/hooks/useAnalyze';
-import HighlightText from '@/components/HighlightText';
+import styled from '@emotion/styled';
+import { GlassPanel } from '@/components/ui/GlassPanel';
+import { GlassButton } from '@/components/ui/GlassButton';
+import { GlassTextarea } from '@/components/ui/GlassInput';
 import ScoreGauge from '@/components/ScoreGauge';
-import UserMenu from '@/components/UserMenu';
-import AuthGuard from '@/components/AuthGuard';
+import HighlightText from '@/components/HighlightText';
+import { useAnalyze } from '@/hooks/useAnalyze';
+import type { AnalysisResult } from '@/types';
 
-const Container = styled.div`max-width:1100px;margin:40px auto;padding:0 20px;`;
-const TopBar = styled.div`display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;`;
-const Grid = styled.div`
-  display:grid;grid-template-columns:1fr 1fr;gap:16px;
-  @media (max-width:900px){ grid-template-columns:1fr; }
-`;
-const Panel = styled.div`background:#151a2f;padding:16px;border-radius:16px;`;
-const TextArea = styled.textarea`
-  width:100%;min-height:320px;background:#0e0f1a;color:#e6e8f0;border:1px solid #262a40;border-radius:12px;padding:12px;resize:vertical;line-height:1.6;
-`;
-const Button = styled.button`
-  background:#6b8cff;color:#fff;border:none;padding:10px 14px;border-radius:12px;font-weight:700;
-  &:disabled{opacity:.5;cursor:not-allowed;}
+const Container = styled.div`
+  min-height: 100vh;
+  padding: ${({ theme }) => theme.spacing.xl} ${({ theme }) => theme.spacing.md};
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.xl};
+  
+  @media (min-width: ${({ theme }) => theme.breakpoints.md}) {
+    padding: ${({ theme }) => theme.spacing['3xl']} ${({ theme }) => theme.spacing.xl};
+  }
 `;
 
-export default function HomeContainer() {
-  const [text, setText] = useState(
-    '아마 이번 기능은 괜찮은 편인 것 같아요. 결론적으로 전환율이 23% 정도 늘어날 수도 있습니다.',
-  );
-  const analyze = useAnalyze();
+const Header = styled.header`
+  text-align: center;
+  max-width: 800px;
+  width: 100%;
+`;
+
+const Title = styled.h1`
+  font-size: ${({ theme }) => theme.typography.fontSize['3xl']};
+  font-weight: ${({ theme }) => theme.typography.fontWeight.bold};
+  color: ${({ theme }) => theme.text.primary};
+  margin-bottom: ${({ theme }) => theme.spacing.md};
+  letter-spacing: ${({ theme }) => theme.typography.letterSpacing.tight};
+  
+  /* Subtle text glow */
+  text-shadow: 0 0 40px rgba(122, 165, 255, 0.15);
+  
+  @media (min-width: ${({ theme }) => theme.breakpoints.md}) {
+    font-size: ${({ theme }) => theme.typography.fontSize['4xl']};
+  }
+`;
+
+const Subtitle = styled.p`
+  font-size: ${({ theme }) => theme.typography.fontSize.lg};
+  color: ${({ theme }) => theme.text.secondary};
+  line-height: ${({ theme }) => theme.typography.lineHeight.relaxed};
+`;
+
+const MainPanel = styled(GlassPanel)`
+  max-width: 900px;
+  width: 100%;
+  padding: ${({ theme }) => theme.spacing.xl};
+  
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    padding: ${({ theme }) => theme.spacing.lg};
+  }
+`;
+
+const FormSection = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.spacing.lg};
+`;
+
+const Label = styled.label`
+  font-size: ${({ theme }) => theme.typography.fontSize.sm};
+  font-weight: ${({ theme }) => theme.typography.fontWeight.medium};
+  color: ${({ theme }) => theme.text.secondary};
+  text-transform: uppercase;
+  letter-spacing: ${({ theme }) => theme.typography.letterSpacing.wide};
+  margin-bottom: ${({ theme }) => theme.spacing.xs};
+`;
+
+const ResultsSection = styled.div`
+  margin-top: ${({ theme }) => theme.spacing.xl};
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.spacing.xl};
+`;
+
+const ScoreSection = styled.div`
+  display: flex;
+  justify-content: center;
+  padding: ${({ theme }) => theme.spacing.xl} 0;
+`;
+
+const HighlightsSection = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.spacing.md};
+`;
+
+const SectionTitle = styled.h2`
+  font-size: ${({ theme }) => theme.typography.fontSize.xl};
+  font-weight: ${({ theme }) => theme.typography.fontWeight.semibold};
+  color: ${({ theme }) => theme.text.primary};
+  margin-bottom: ${({ theme }) => theme.spacing.sm};
+`;
+
+const ErrorMessage = styled.div`
+  padding: ${({ theme }) => theme.spacing.md};
+  background: ${({ theme }) => theme.glass.bgAlt};
+  backdrop-filter: blur(${({ theme }) => theme.effects.blur.sm});
+  border: 1px solid ${({ theme }) => theme.colors.danger}40;
+  border-radius: ${({ theme }) => theme.effects.radius.lg};
+  color: ${({ theme }) => theme.colors.danger};
+  font-size: ${({ theme }) => theme.typography.fontSize.sm};
+  
+  /* Danger glow */
+  position: relative;
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: ${({ theme }) => theme.glow.danger};
+    opacity: 0.5;
+  }
+  
+  & > * {
+    position: relative;
+    z-index: 1;
+  }
+`;
+
+const HomeContainer = () => {
+  const [text, setText] = useState('');
+  const { mutate: analyze, data, isPending, error } = useAnalyze();
+
+  // 디버깅용
+  if (data) {
+    console.log('=== 분석 결과 ===');
+    console.log('점수:', data.ambiguity_score);
+    console.log('발견된 문제 수:', data.highlights?.length || 0);
+    console.log('카테고리:', data.categories);
+    console.log('전체 데이터:', data);
+  }
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (text.trim()) {
+      analyze({ text });
+    }
+  };
+
+  const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setText(e.target.value);
+  };
 
   return (
-    <AuthGuard>
-      <Container>
-        <TopBar>
-          <h1>aemaehano</h1>
-          <UserMenu />
-        </TopBar>
+    <Container>
+      <Header>
+        <Title>애매한 텍스트 분석기</Title>
+        <Subtitle>
+          텍스트의 모호성을 AI가 분석하고 개선 방향을 제시합니다
+        </Subtitle>
+      </Header>
 
-        <Grid>
-          <Panel>
-            <h3>입력</h3>
-            <TextArea value={text} onChange={(e) => setText(e.target.value)} />
-            <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-              <Button onClick={() => analyze.mutate({ text })} disabled={analyze.isPending}>
-                {analyze.isPending ? '분석 중...' : '분석'}
-              </Button>
-            </div>
-          </Panel>
+      <MainPanel elevation="high" glow>
+        <FormSection>
+          <div>
+            <Label htmlFor="text-input">분석할 텍스트 입력</Label>
+            <GlassTextarea
+              id="text-input"
+              value={text}
+              onChange={handleTextChange}
+              placeholder="분석하고 싶은 텍스트를 입력하세요..."
+              rows={6}
+              disabled={isPending}
+              aria-label="분석할 텍스트 입력"
+            />
+          </div>
 
-          <Panel>
-            <h3>결과</h3>
-            {analyze.data ? (
-              <>
-                <ScoreGauge score={analyze.data.score} breakdown={analyze.data.breakdown} />
-                <div style={{ marginTop: 12, fontSize: 14, opacity: 0.9 }}>
-                  카테고리 감점: {analyze.data.breakdown.catPenalty} / 패턴:{' '}
-                  {analyze.data.breakdown.patternPenalty} / 밀도:{' '}
-                  {analyze.data.breakdown.densityPenalty}
-                </div>
-                <div style={{ marginTop: 12, lineHeight: 1.9 }}>
-                  <HighlightText text={text} hits={analyze.data.hits} />
-                </div>
-              </>
-            ) : (
-              <div style={{ opacity: 0.7 }}>왼쪽에 텍스트를 입력하고 "분석"을 누르세요.</div>
-            )}
-          </Panel>
-        </Grid>
-      </Container>
-    </AuthGuard>
+          <GlassButton
+            type="submit"
+            variant="primary"
+            size="lg"
+            fullWidth
+            onClick={handleSubmit}
+            disabled={!text.trim() || isPending}
+            loading={isPending}
+            aria-label={isPending ? '분석 중' : '분석 시작'}
+          >
+            {isPending ? '분석 중...' : '분석 시작'}
+          </GlassButton>
+
+          {error && (
+            <ErrorMessage role="alert">
+              <strong>오류:</strong> {error.message || '분석 중 오류가 발생했습니다.'}
+            </ErrorMessage>
+          )}
+        </FormSection>
+
+        {data && (
+          <ResultsSection>
+            <ScoreSection>
+              <ScoreGauge score={data.ambiguity_score} />
+            </ScoreSection>
+
+            <HighlightsSection>
+              <SectionTitle>분석 결과</SectionTitle>
+              <HighlightText result={data} />
+            </HighlightsSection>
+          </ResultsSection>
+        )}
+      </MainPanel>
+    </Container>
   );
-}
+};
+
+export default HomeContainer;

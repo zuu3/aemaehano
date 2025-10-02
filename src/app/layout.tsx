@@ -1,15 +1,28 @@
+// src/app/layout.tsx
 import type { Metadata } from 'next';
 import AppProviders from '@/app-provider';
+import ThemeProvider from '@/components/ThemeProvider';
+import ClientLayout from '@/components/ClientLayout';
 
 export const metadata: Metadata = {
-  title: 'aemaehano',
-  description: '약한표현 탐지 & 설득력 점수',
+  title: '애매한 텍스트 분석기',
+  description: 'AI 기반 텍스트 명확성 분석 도구',
 };
 
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="ko">
-      <body><AppProviders>{children}</AppProviders></body>
+      <body>
+        <AppProviders>
+          <ThemeProvider>
+            <ClientLayout>{children}</ClientLayout>
+          </ThemeProvider>
+        </AppProviders>
+      </body>
     </html>
   );
 }

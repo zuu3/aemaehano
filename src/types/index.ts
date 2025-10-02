@@ -1,20 +1,37 @@
-export type Hit = {
+export interface Hit {
   term: string;
   cat: 'hedge' | 'vague' | 'softener' | 'apology' | 'filler';
   start: number;
   end: number;
   sentenceIdx: number;
-};
+}
 
-export type ScoreBreakdown = {
-  catPenalty: number;
-  patternPenalty: number;
-  densityPenalty: number;
-  bonus: number;
-};
-
-export type ScoreResponse = {
+export interface ScoreResponse {
   score: number;
   hits: Hit[];
-  breakdown: ScoreBreakdown;
-};
+  breakdown: {
+    catPenalty: number;
+    patternPenalty: number;
+    densityPenalty: number;
+    bonus: number;
+  };
+}
+
+export interface Highlight {
+  start: number;
+  end: number;
+  category: string;
+  reason: string;
+}
+
+export interface AnalysisResult {
+  original_text: string;
+  ambiguity_score: number;
+  highlights: Highlight[];
+  categories: string[];
+  suggestions: string[];
+}
+
+export interface AnalyzeRequest {
+  text: string;
+}

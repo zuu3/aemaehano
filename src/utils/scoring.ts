@@ -1,16 +1,16 @@
 import type { Hit, ScoreResponse } from '@/types';
 
 const cfg = {
-  coefPerHit: 2,
-  caps: { category: 15, pattern: 10, density: 5, totalPenalty: 40, bonus: 8 },
+  coefPerHit: 3,
+  caps: { category: 30, pattern: 20, density: 10, totalPenalty: 100, bonus: 10 },
   categories: {
-    hedge:   { severity: 2, regex: [/아마(?:도)?/g, /일지도/g, /것\s*같(?:다|아요|았|었|습니다|네요|을까요)/g, /수도\s*있/g] },
-    vague:   { severity: 2, regex: [/좀/g, /약간/g, /대충/g, /괜찮\s*은\s*편/g] },
-    softener:{ severity: 1, regex: [/개인적으로(?:는)?/g, /혹시/g, /그냥(?!\w)/g, /다만/g] },
-    apology: { severity: 1, regex: [/죄송하지만/g, /실례지만/g, /염치없지만/g] },
-    filler:  { severity: 1, regex: [/아무튼/g, /근데/g, /사실은/g, /어쨌든/g] },
+    hedge:   { severity: 3, regex: [/아마(?:도)?/g, /일지도/g, /것\s*같(?:다|아요|았|었|습니다|네요|을까요)/g, /수도\s*있/g, /~\s*듯/g, /인\s*듯/g] },
+    vague:   { severity: 3, regex: [/좀/g, /약간/g, /대충/g, /적당히/g, /조만간/g, /나중에/g, /언젠가/g, /그쪽/g, /이쪽/g, /여기저기/g, /어디(?:선가|든가)/g, /괜찮\s*은\s*편/g, /얼추/g, /대략/g, /웬만하면/g] },
+    softener:{ severity: 2, regex: [/개인적으로(?:는)?/g, /혹시/g, /그냥(?!\w)/g, /다만/g, /일단/g, /우선/g] },
+    apology: { severity: 2, regex: [/죄송하지만/g, /실례지만/g, /염치없지만/g, /미안하지만/g, /송구스럽지만/g] },
+    filler:  { severity: 2, regex: [/아무튼/g, /근데/g, /사실은/g, /어쨌든/g, /하여튼/g, /뭐랄까/g, /그러니까/g] },
   },
-  patterns: { headHedge: 1, weakEnding: 2, repeat3plus: 3, shortHedge: 1 },
+  patterns: { headHedge: 2, weakEnding: 3, repeat3plus: 5, shortHedge: 2 },
   bonus: { numeric: 0.5, conclusion: 0.5, assertive: 0.5, evidence: 1.0 },
 };
 
