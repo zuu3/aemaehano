@@ -11,7 +11,6 @@ interface GlassInputProps extends InputHTMLAttributes<HTMLInputElement>, BaseInp
 interface GlassTextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement>, BaseInputProps {}
 
 const inputStyles = `
-  /* Base styles */
   width: 100%;
   font-family: inherit;
   font-size: inherit;
@@ -32,7 +31,6 @@ const inputStyles = `
 `;
 
 const StyledInputWrapper = styled.div<BaseInputProps>`
-  /* Glass container */
   display: flex;
   align-items: center;
   background: ${({ theme }) => theme.glass.bg};
@@ -46,10 +44,8 @@ const StyledInputWrapper = styled.div<BaseInputProps>`
   position: relative;
   overflow: hidden;
   
-  /* Width */
   ${({ fullWidth }) => !fullWidth && 'max-width: 100%;'}
   
-  /* Top highlight */
   &::before {
     content: '';
     position: absolute;
@@ -61,7 +57,6 @@ const StyledInputWrapper = styled.div<BaseInputProps>`
     opacity: 0.5;
   }
   
-  /* Focus state - Accessibility */
   &:focus-within {
     background: ${({ theme }) => theme.glass.bgHover};
     border-color: ${({ theme, hasError }) => 
@@ -70,12 +65,10 @@ const StyledInputWrapper = styled.div<BaseInputProps>`
       hasError ? 'rgba(255, 59, 48, 0.15)' : 'rgba(122, 165, 255, 0.15)'};
   }
   
-  /* Hover state */
   &:hover:not(:focus-within) {
     background: ${({ theme }) => theme.glass.bgAlt};
   }
   
-  /* Disabled state */
   &:has(input:disabled), &:has(textarea:disabled) {
     opacity: 0.5;
     cursor: not-allowed;

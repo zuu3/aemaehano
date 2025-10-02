@@ -1,4 +1,3 @@
-// src/app/(auth)/login/page.tsx
 'use client';
 
 import { signIn } from 'next-auth/react';
@@ -42,7 +41,6 @@ const Logo = styled.div`
   backdrop-filter: blur(${({ theme }) => theme.effects.blur.md});
   position: relative;
   
-  /* Subtle animation */
   animation: float 6s ease-in-out infinite;
   
   @keyframes float {
@@ -54,7 +52,6 @@ const Logo = styled.div`
     }
   }
   
-  /* Accessibility: Reduced motion */
   @media (prefers-reduced-motion: reduce) {
     animation: none;
   }

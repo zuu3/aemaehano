@@ -1,10 +1,9 @@
-// src/components/ScoreGauge.tsx
 import { useTheme } from '@emotion/react';
 import styled from '@emotion/styled';
 import { useMemo } from 'react';
 
 interface ScoreGaugeProps {
-  score: number; // 0-100
+  score: number;
   size?: number;
 }
 
@@ -46,23 +45,17 @@ const ScoreLabel = styled.div`
 const ScoreGauge: React.FC<ScoreGaugeProps> = ({ score, size = 200 }) => {
   const theme = useTheme();
   
-  // 점수 검증 및 정규화
   const normalizedScore = useMemo(() => {
-    // NaN, null, undefined 체크
     if (score === null || score === undefined || isNaN(score)) {
       console.warn('Invalid score received:', score);
       return 0;
     }
     
-    // 0-100 범위로 제한
     const validScore = Math.min(Math.max(Number(score), 0), 100);
     return Math.round(validScore);
   }, [score]);
   
-  // Calculate color and label based on score
   const { color, glowColor, label } = useMemo(() => {
-    // 높은 점수 = 명확함 (초록)
-    // 낮은 점수 = 모호함 (빨강)
     if (normalizedScore >= 80) {
       return {
         color: theme.colors.success,
@@ -98,14 +91,12 @@ const ScoreGauge: React.FC<ScoreGaugeProps> = ({ score, size = 200 }) => {
     };
   }, [normalizedScore, theme]);
   
-  // Gauge calculations
   const radius = (size - 40) / 2;
   const strokeWidth = 12;
   const center = size / 2;
   
-  // Arc angles (270 degree gauge, starting from bottom left)
-  const startAngle = 135; // degrees
-  const endAngle = 405; // 135 + 270
+  const startAngle = 135;
+  const endAngle = 405;
   const scoreAngle = startAngle + (normalizedScore / 100) * 270;
   
   const describeArc = (startAngle: number, endAngle: number) => {
@@ -135,7 +126,6 @@ const ScoreGauge: React.FC<ScoreGaugeProps> = ({ score, size = 200 }) => {
         role="img"
         aria-label={`명확성 점수: ${normalizedScore}점, ${label}`}
       >
-        {/* Glow effect */}
         <defs>
           <filter id="glow">
             <feGaussianBlur stdDeviation="4" result="coloredBlur" />
@@ -151,7 +141,6 @@ const ScoreGauge: React.FC<ScoreGaugeProps> = ({ score, size = 200 }) => {
           </linearGradient>
         </defs>
         
-        {/* Background track - glass effect */}
         <path
           d={backgroundPath}
           fill="none"
@@ -161,7 +150,6 @@ const ScoreGauge: React.FC<ScoreGaugeProps> = ({ score, size = 200 }) => {
           opacity="0.3"
         />
         
-        {/* Inner glow ring */}
         <path
           d={backgroundPath}
           fill="none"
@@ -172,7 +160,6 @@ const ScoreGauge: React.FC<ScoreGaugeProps> = ({ score, size = 200 }) => {
           style={{ filter: 'blur(8px)' }}
         />
         
-        {/* Score arc with glow */}
         <path
           d={scorePath}
           fill="none"
@@ -184,8 +171,7 @@ const ScoreGauge: React.FC<ScoreGaugeProps> = ({ score, size = 200 }) => {
             transition: `d ${theme.motion.duration.slow} ${theme.motion.easing.easeOut}`,
           }}
         />
-        
-        {/* Outer highlight */}
+
         <path
           d={scorePath}
           fill="none"
@@ -198,7 +184,6 @@ const ScoreGauge: React.FC<ScoreGaugeProps> = ({ score, size = 200 }) => {
           }}
         />
         
-        {/* Center indicator dot */}
         <circle
           cx={center}
           cy={center}

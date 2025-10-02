@@ -9,11 +9,10 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   session: {
-    strategy: 'jwt', // 세션=JWT
+    strategy: 'jwt',
   },
   callbacks: {
     async jwt({ token, account, profile }) {
-      // 최초 로그인 시 구글 계정 정보 토큰에 병합
       if (account?.provider === 'google') {
         token.provider = 'google';
       }
@@ -23,7 +22,6 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
     async session({ session, token }) {
-      // 클라이언트에서 session.user 접근 가능
       if (session.user) {
         session.user.name = token.name as string | undefined;
         (session as any).provider = token.provider;
@@ -32,6 +30,6 @@ export const authOptions: NextAuthOptions = {
     },
   },
   pages: {
-    signIn: '/login', // 커스텀 로그인 페이지
+    signIn: '/login',
   },
 };

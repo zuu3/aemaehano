@@ -1,4 +1,3 @@
-// src/components/UserMenu.tsx
 'use client';
 
 import { signOut, useSession } from 'next-auth/react';
@@ -123,7 +122,6 @@ const UserMenu = () => {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -135,7 +133,6 @@ const UserMenu = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
   
-  // Close dropdown on Escape key - Accessibility
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {

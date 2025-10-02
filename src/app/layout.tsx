@@ -1,4 +1,3 @@
-// src/app/layout.tsx
 import type { Metadata } from 'next';
 import AppProviders from '@/app-provider';
 import ThemeProvider from '@/components/ThemeProvider';

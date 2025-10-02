@@ -8,7 +8,6 @@ interface GlassPanelProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 const StyledPanel = styled.div<GlassPanelProps>`
-  /* Base glass effect */
   background: ${({ theme, variant = 'default' }) => {
     if (variant === 'elevated') return theme.glass.bgAlt;
     if (variant === 'overlay') return theme.glass.bgHover;
@@ -24,14 +23,12 @@ const StyledPanel = styled.div<GlassPanelProps>`
   border: 1px solid ${({ theme }) => theme.glass.stroke};
   border-radius: ${({ theme }) => theme.effects.radius.xl};
   
-  /* Shadow based on elevation */
   box-shadow: ${({ theme, elevation = 'medium' }) => {
     if (elevation === 'low') return theme.effects.shadow.sm;
     if (elevation === 'high') return theme.effects.shadow.lg;
     return theme.effects.shadow.md;
   }};
   
-  /* Inner highlight for glass effect */
   position: relative;
   overflow: hidden;
   
@@ -46,7 +43,6 @@ const StyledPanel = styled.div<GlassPanelProps>`
     opacity: 0.5;
   }
   
-  /* Optional glow effect */
   ${({ theme, glow }) =>
     glow &&
     `
@@ -66,7 +62,6 @@ const StyledPanel = styled.div<GlassPanelProps>`
   transition: all ${({ theme }) => theme.motion.duration.normal}
     ${({ theme }) => theme.motion.easing.easeOut};
   
-  /* Accessibility: Ensure content is above pseudo-elements */
   & > * {
     position: relative;
     z-index: 1;

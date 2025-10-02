@@ -7,7 +7,6 @@ interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
 }
 
 const StyledBadge = styled.span<BadgeProps>`
-  /* Base styles */
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -18,7 +17,6 @@ const StyledBadge = styled.span<BadgeProps>`
   position: relative;
   overflow: hidden;
   
-  /* Size variants */
   ${({ size = 'md', theme }) => {
     if (size === 'sm')
       return `
@@ -33,12 +31,10 @@ const StyledBadge = styled.span<BadgeProps>`
     `;
   }}
   
-  /* Glass effect */
   background: ${({ theme }) => theme.glass.bgAlt};
   backdrop-filter: blur(${({ theme }) => theme.effects.blur.sm});
   border: 1px solid ${({ theme }) => theme.glass.strokeAlt};
   
-  /* Color variants with glow */
   ${({ theme, variant = 'default' }) => {
     if (variant === 'success')
       return `
@@ -97,7 +93,6 @@ const StyledBadge = styled.span<BadgeProps>`
     `;
   }}
   
-  /* Ensure content is above glow */
   & > * {
     position: relative;
     z-index: 1;

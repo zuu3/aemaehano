@@ -1,4 +1,3 @@
-// src/app-providers.tsx
 'use client';
 
 import { CacheProvider, ThemeProvider } from '@emotion/react';

@@ -1,4 +1,3 @@
-// src/containers/HomeContainer.tsx
 'use client';
 
 import { useState } from 'react';
@@ -6,8 +5,8 @@ import styled from '@emotion/styled';
 import { GlassPanel } from '@/components/ui/GlassPanel';
 import { GlassButton } from '@/components/ui/GlassButton';
 import { GlassTextarea } from '@/components/ui/GlassInput';
-import ScoreGauge from '@/components/ScoreGauge';
-import HighlightText from '@/components/HighlightText';
+import ScoreGauge from '@/components/ui/ScoreGauge';
+import HighlightText from '@/components/ui/HighlightText';
 import { useAnalyze } from '@/hooks/useAnalyze';
 import type { AnalysisResult } from '@/types';
 
@@ -133,7 +132,6 @@ const HomeContainer = () => {
   const [text, setText] = useState('');
   const { mutate: analyze, data, isPending, error } = useAnalyze();
 
-  // 디버깅용
   if (data) {
     console.log('=== 분석 결과 ===');
     console.log('점수:', data.ambiguity_score);

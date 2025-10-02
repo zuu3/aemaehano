@@ -1,8 +1,7 @@
-// src/components/ClientLayout.tsx
 'use client';
 
 import styled from '@emotion/styled';
-import UserMenu from '@/components/UserMenu';
+import UserMenu from '@/components/ui/UserMenu';
 import { ReactNode } from 'react';
 
 const AppHeader = styled.header`

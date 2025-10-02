@@ -1,4 +1,3 @@
-// src/components/HighlightText.tsx
 import styled from '@emotion/styled';
 import { Badge } from '@/components/ui/Badge';
 import type { AnalysisResult } from '@/types';
@@ -54,9 +53,7 @@ const Highlight = styled.mark<{ category: string }>`
     right: 0;
     height: 2px;
     background: ${({ theme, category }) => {
-      // hedge, vague는 경고
       if (category === 'hedge' || category === 'vague') return theme.colors.warning;
-      // softener, apology, filler는 정보
       return theme.colors.info;
     }};
     opacity: 0.6;
@@ -119,8 +116,72 @@ const SuggestionItem = styled.div`
   }
 `;
 
+const RewriteSection = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.spacing.md};
+  margin-top: ${({ theme }) => theme.spacing.lg};
+`;
+
+const RewriteCard = styled.div`
+  padding: ${({ theme }) => theme.spacing.lg};
+  background: ${({ theme }) => theme.glass.bg};
+  backdrop-filter: blur(${({ theme }) => theme.effects.blur.md});
+  border: 1px solid ${({ theme }) => theme.glass.stroke};
+  border-radius: ${({ theme }) => theme.effects.radius.lg};
+  position: relative;
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, ${({ theme }) => theme.colors.success}, ${({ theme }) => theme.colors.info});
+  }
+`;
+
+const RewriteLabel = styled.div`
+  font-size: ${({ theme }) => theme.typography.fontSize.xs};
+  font-weight: ${({ theme }) => theme.typography.fontWeight.semibold};
+  color: ${({ theme }) => theme.text.secondary};
+  text-transform: uppercase;
+  letter-spacing: ${({ theme }) => theme.typography.letterSpacing.wide};
+  margin-bottom: ${({ theme }) => theme.spacing.sm};
+`;
+
+const RewriteText = styled.div<{ isImproved?: boolean }>`
+  padding: ${({ theme }) => theme.spacing.md};
+  background: ${({ theme, isImproved }) => 
+    isImproved ? `${theme.colors.success}15` : `${theme.colors.danger}15`};
+  border-left: 3px solid ${({ theme, isImproved }) => 
+    isImproved ? theme.colors.success : theme.colors.danger};
+  border-radius: ${({ theme }) => theme.effects.radius.md};
+  font-size: ${({ theme }) => theme.typography.fontSize.base};
+  color: ${({ theme }) => theme.text.primary};
+  margin-bottom: ${({ theme }) => theme.spacing.sm};
+  line-height: ${({ theme }) => theme.typography.lineHeight.relaxed};
+`;
+
+const RewriteReason = styled.div`
+  font-size: ${({ theme }) => theme.typography.fontSize.sm};
+  color: ${({ theme }) => theme.text.secondary};
+  font-style: italic;
+  margin-top: ${({ theme }) => theme.spacing.sm};
+  padding-left: ${({ theme }) => theme.spacing.md};
+`;
+
+const ArrowIcon = styled.div`
+  text-align: center;
+  color: ${({ theme }) => theme.colors.success};
+  font-size: ${({ theme }) => theme.typography.fontSize.xl};
+  margin: ${({ theme }) => theme.spacing.sm} 0;
+`;
+
 const HighlightText: React.FC<HighlightTextProps> = ({ result }) => {
-  const { original_text, highlights, categories, suggestions } = result;
+  const { original_text, highlights, categories, suggestions, rewriteSuggestions } = result;
   
   const hasHighlights = highlights && highlights.length > 0;
   
@@ -212,9 +273,34 @@ const HighlightText: React.FC<HighlightTextProps> = ({ result }) => {
         </CategoriesSection>
       )}
 
+      {rewriteSuggestions && rewriteSuggestions.length > 0 && (
+        <RewriteSection>
+          <CategoryLabel>✨ AI 문장 개선 제안</CategoryLabel>
+          {rewriteSuggestions.map((rewrite, idx) => (
+            <RewriteCard key={idx}>
+              <RewriteLabel>원본</RewriteLabel>
+              <RewriteText isImproved={false}>
+                {rewrite.original}
+              </RewriteText>
+              
+              <ArrowIcon>↓</ArrowIcon>
+              
+              <RewriteLabel>개선</RewriteLabel>
+              <RewriteText isImproved={true}>
+                {rewrite.improved}
+              </RewriteText>
+              
+              <RewriteReason>
+                💡 {rewrite.reason}
+              </RewriteReason>
+            </RewriteCard>
+          ))}
+        </RewriteSection>
+      )}
+
       {suggestions && suggestions.length > 0 && (
         <SuggestionsSection>
-          <CategoryLabel>개선 제안:</CategoryLabel>
+          <CategoryLabel>일반 개선 제안:</CategoryLabel>
           {suggestions.map((suggestion, idx) => (
             <SuggestionItem key={idx}>
               {suggestion}

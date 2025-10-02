@@ -1,23 +1,18 @@
-// src/styles/theme.ts
 import '@emotion/react';
 
 export type ColorMode = 'light' | 'dark';
 
-// Base color tokens
 const colors = {
-  // Brand
   primary: '#007AFF',
   secondary: '#5856D6',
   accent: '#7aa5ff',
   
-  // Status
   success: '#34C759',
   warning: '#FF9500',
   danger: '#FF3B30',
   info: '#5AC8FA',
 };
 
-// Dark mode glass tokens
 const darkGlass = {
   surface: {
     base: 'rgba(18, 18, 18, 0.88)',
@@ -53,7 +48,6 @@ const darkGlass = {
   },
 };
 
-// Light mode glass tokens
 const lightGlass = {
   surface: {
     base: 'rgba(255, 255, 255, 0.88)',
@@ -89,7 +83,6 @@ const lightGlass = {
   },
 };
 
-// Effect tokens
 const effects = {
   blur: {
     sm: '6px',
@@ -118,7 +111,6 @@ const effects = {
   },
 };
 
-// Motion tokens
 const motion = {
   duration: {
     fast: '150ms',
@@ -132,21 +124,20 @@ const motion = {
   },
 };
 
-// Typography
 const typography = {
   fontFamily: {
     base: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
     mono: '"SF Mono", "Monaco", "Cascadia Code", "Courier New", monospace',
   },
   fontSize: {
-    xs: '0.75rem',    // 12px
-    sm: '0.875rem',   // 14px
-    base: '1rem',     // 16px
-    lg: '1.125rem',   // 18px
-    xl: '1.25rem',    // 20px
-    '2xl': '1.5rem',  // 24px
-    '3xl': '1.875rem', // 30px
-    '4xl': '2.25rem', // 36px
+    xs: '0.75rem',
+    sm: '0.875rem',
+    base: '1rem',
+    lg: '1.125rem',
+    xl: '1.25rem',
+    '2xl': '1.5rem',
+    '3xl': '1.875rem',
+    '4xl': '2.25rem',
   },
   fontWeight: {
     normal: 400,
@@ -168,16 +159,15 @@ const typography = {
 
 // Spacing
 const spacing = {
-  xs: '0.25rem',   // 4px
-  sm: '0.5rem',    // 8px
-  md: '1rem',      // 16px
-  lg: '1.5rem',    // 24px
-  xl: '2rem',      // 32px
-  '2xl': '3rem',   // 48px
-  '3xl': '4rem',   // 64px
+  xs: '0.25rem',
+  sm: '0.5rem',
+  md: '1rem',
+  lg: '1.5rem',
+  xl: '2rem',
+  '2xl': '3rem',
+  '3xl': '4rem',
 };
 
-// Breakpoints
 const breakpoints = {
   xs: '320px',
   sm: '640px',
@@ -187,7 +177,6 @@ const breakpoints = {
   '2xl': '1536px',
 };
 
-// Create theme object
 export const createTheme = (mode: ColorMode = 'dark') => ({
   mode,
   colors,
@@ -201,7 +190,6 @@ export const createTheme = (mode: ColorMode = 'dark') => ({
 
 export type Theme = ReturnType<typeof createTheme>;
 
-// Emotion TypeScript support
 declare module '@emotion/react' {
   export interface Theme extends ReturnType<typeof createTheme> {}
 }

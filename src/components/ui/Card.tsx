@@ -1,4 +1,3 @@
-// src/components/ui/Card.tsx
 import styled from '@emotion/styled';
 import { HTMLAttributes } from 'react';
 
@@ -9,7 +8,6 @@ interface CardProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 const StyledCard = styled.div<CardProps>`
-  /* Base glass effect */
   background: ${({ theme }) => theme.glass.bg};
   backdrop-filter: blur(${({ theme, elevation = 'medium' }) => {
     if (elevation === 'low') return theme.effects.blur.sm;
@@ -20,7 +18,6 @@ const StyledCard = styled.div<CardProps>`
   border: 1px solid ${({ theme }) => theme.glass.stroke};
   border-radius: ${({ theme }) => theme.effects.radius.xl};
   
-  /* Shadow */
   box-shadow: ${({ theme, elevation = 'medium' }) => {
     if (elevation === 'low') return theme.effects.shadow.sm;
     if (elevation === 'high') return theme.effects.shadow.lg;
@@ -30,8 +27,7 @@ const StyledCard = styled.div<CardProps>`
   padding: ${({ theme }) => theme.spacing.lg};
   position: relative;
   overflow: hidden;
-  
-  /* Top highlight */
+
   &::before {
     content: '';
     position: absolute;
@@ -43,7 +39,6 @@ const StyledCard = styled.div<CardProps>`
     opacity: 0.5;
   }
   
-  /* Optional glow */
   ${({ theme, glow }) =>
     glow &&
     `
@@ -59,8 +54,7 @@ const StyledCard = styled.div<CardProps>`
       opacity: 0.6;
     }
   `}
-  
-  /* Interactive state */
+
   ${({ interactive, theme }) =>
     interactive &&
     `
@@ -79,13 +73,11 @@ const StyledCard = styled.div<CardProps>`
     }
   `}
   
-  /* Ensure content is above pseudo-elements */
   & > * {
     position: relative;
     z-index: 1;
   }
   
-  /* Responsive padding */
   @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
     padding: ${({ theme }) => theme.spacing.md};
   }

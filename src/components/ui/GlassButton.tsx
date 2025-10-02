@@ -8,8 +8,9 @@ interface GlassButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   fullWidth?: boolean;
 }
 
-const StyledButton = styled.button<GlassButtonProps>`
-  /* Base styles */
+const StyledButton = styled('button', {
+  shouldForwardProp: (prop) => !['loading', 'fullWidth', 'variant', 'size'].includes(prop)
+})<GlassButtonProps>`
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -24,7 +25,6 @@ const StyledButton = styled.button<GlassButtonProps>`
   transition: all ${({ theme }) => theme.motion.duration.normal}
     ${({ theme }) => theme.motion.easing.easeOut};
   
-  /* Size variants */
   ${({ size = 'md', theme }) => {
     if (size === 'sm')
       return `
@@ -45,10 +45,8 @@ const StyledButton = styled.button<GlassButtonProps>`
     `;
   }}
   
-  /* Full width */
   ${({ fullWidth }) => fullWidth && 'width: 100%;'}
   
-  /* Variant styles */
   ${({ theme, variant = 'primary' }) => {
     if (variant === 'primary')
       return `
@@ -58,7 +56,6 @@ const StyledButton = styled.button<GlassButtonProps>`
         color: ${theme.text.primary};
         box-shadow: ${theme.effects.shadow.sm};
         
-        /* Glow overlay */
         &::before {
           content: '';
           position: absolute;
@@ -85,7 +82,6 @@ const StyledButton = styled.button<GlassButtonProps>`
     `;
   }}
   
-  /* Hover state */
   &:hover:not(:disabled) {
     transform: translateY(-1px);
     ${({ theme, variant = 'primary' }) => {
@@ -111,30 +107,25 @@ const StyledButton = styled.button<GlassButtonProps>`
     }}
   }
   
-  /* Active state - Accessibility: Clear pressed state */
   &:active:not(:disabled) {
     transform: scale(0.985);
     ${({ theme }) => `
       box-shadow: ${theme.effects.shadow.inner}, ${theme.effects.shadow.sm};
     `}
   }
-  
-  /* Disabled state - Accessibility: Clear disabled state */
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
     transform: none;
   }
   
-  /* Loading state */
   ${({ loading }) =>
     loading &&
     `
     pointer-events: none;
     opacity: 0.7;
   `}
-  
-  /* Ensure content is above pseudo-elements */
+
   & > * {
     position: relative;
     z-index: 1;
@@ -156,7 +147,6 @@ const LoadingSpinner = styled.span`
     }
   }
   
-  /* Accessibility: Reduced motion */
   @media (prefers-reduced-motion: reduce) {
     animation: none;
     border-top-color: ${({ theme }) => theme.glass.stroke};

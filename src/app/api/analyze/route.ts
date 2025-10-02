@@ -1,8 +1,8 @@
-// src/app/api/analyze/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { score } from '@/utils/scoring';
+import { analyzeWithAI, analyzeWithLocalAI } from '@/services/ai-analysis.service';
 import type { AnalysisResult, Hit } from '@/types';
 
 const CATEGORY_REASONS: Record<Hit['cat'], string> = {
@@ -70,19 +70,15 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    // scoring.ts의 score 함수 호출
     const scoreResult = score(text);
     
-    // 디버깅 로그
     console.log('=== Score Result ===');
     console.log('Score:', scoreResult.score);
     console.log('Hits:', scoreResult.hits.length);
     console.log('Breakdown:', scoreResult.breakdown);
 
-    // 점수 검증
     const validScore = isNaN(scoreResult.score) ? 0 : Math.round(scoreResult.score);
 
-    // Hit을 Highlight로 변환
     const highlights = scoreResult.hits.map(hit => ({
       start: hit.start,
       end: hit.end,
@@ -90,24 +86,29 @@ export async function POST(req: NextRequest) {
       reason: CATEGORY_REASONS[hit.cat],
     }));
 
-    // 고유 카테고리 추출
     const categoriesSet = new Set(scoreResult.hits.map(hit => hit.cat));
     const categories = Array.from(categoriesSet);
 
-    // 제안 생성
-    const suggestions = generateSuggestions(validScore, categoriesSet);
+    const basicSuggestions = generateSuggestions(validScore, categoriesSet);
+    
+    const aiAnalysis = process.env.HUGGINGFACE_API_KEY 
+      ? await analyzeWithAI(text)
+      : analyzeWithLocalAI(text);
+    
+    const allSuggestions = [...basicSuggestions, ...aiAnalysis.suggestions];
 
-    // 프론트엔드 형식으로 변환
     const result: AnalysisResult = {
       original_text: text,
       ambiguity_score: validScore,
       highlights,
       categories,
-      suggestions,
+      suggestions: allSuggestions,
     };
 
     console.log('=== Final Result ===');
     console.log('Ambiguity Score:', result.ambiguity_score);
+    console.log('AI Tone:', aiAnalysis.tone);
+    console.log('AI Clarity:', aiAnalysis.clarity);
 
     return NextResponse.json(result);
   } catch (error) {
