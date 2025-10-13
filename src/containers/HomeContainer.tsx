@@ -8,6 +8,7 @@ import { GlassTextarea } from '@/components/ui/GlassInput';
 import ScoreGauge from '@/components/ui/ScoreGauge';
 import HighlightText from '@/components/ui/HighlightText';
 import { useAnalyze } from '@/hooks/useAnalyze';
+import { useCreateDocument } from '@/hooks/useDocuments';
 import type { AnalysisResult } from '@/types';
 
 const Container = styled.div`
@@ -94,11 +95,46 @@ const HighlightsSection = styled.div`
   gap: ${({ theme }) => theme.spacing.md};
 `;
 
+const SaveSection = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${({ theme }) => theme.spacing.md};
+  padding-top: ${({ theme }) => theme.spacing.xl};
+  border-top: 1px solid ${({ theme }) => theme.glass.stroke};
+`;
+
 const SectionTitle = styled.h2`
   font-size: ${({ theme }) => theme.typography.fontSize.xl};
   font-weight: ${({ theme }) => theme.typography.fontWeight.semibold};
   color: ${({ theme }) => theme.text.primary};
   margin-bottom: ${({ theme }) => theme.spacing.sm};
+`;
+
+const SuccessMessage = styled.div`
+  padding: ${({ theme }) => theme.spacing.md};
+  background: ${({ theme }) => theme.glass.bgAlt};
+  backdrop-filter: blur(${({ theme }) => theme.effects.blur.sm});
+  border: 1px solid ${({ theme }) => theme.colors.success}40;
+  border-radius: ${({ theme }) => theme.effects.radius.lg};
+  color: ${({ theme }) => theme.colors.success};
+  font-size: ${({ theme }) => theme.typography.fontSize.sm};
+  
+  /* Success glow */
+  position: relative;
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: ${({ theme }) => theme.glow.success};
+    opacity: 0.5;
+  }
+  
+  & > * {
+    position: relative;
+    z-index: 1;
+  }
 `;
 
 const ErrorMessage = styled.div`
@@ -130,7 +166,10 @@ const ErrorMessage = styled.div`
 
 const HomeContainer = () => {
   const [text, setText] = useState('');
+  const [title, setTitle] = useState('');
+  const [saveSuccess, setSaveSuccess] = useState(false);
   const { mutate: analyze, data, isPending, error } = useAnalyze();
+  const { mutate: saveDocument, isPending: isSaving, error: saveError } = useCreateDocument();
 
   if (data) {
     console.log('=== 분석 결과 ===');
@@ -149,6 +188,29 @@ const HomeContainer = () => {
 
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setText(e.target.value);
+  };
+
+  const handleSaveDocument = () => {
+    if (!data) return;
+
+    const documentTitle = title.trim() || text.substring(0, 50) + (text.length > 50 ? '...' : '');
+
+    saveDocument(
+      {
+        title: documentTitle,
+        original_text: data.original_text,
+        ambiguity_score: data.ambiguity_score,
+        highlights: data.highlights,
+        categories: data.categories,
+        suggestions: data.suggestions,
+      },
+      {
+        onSuccess: () => {
+          setSaveSuccess(true);
+          setTimeout(() => setSaveSuccess(false), 3000);
+        },
+      }
+    );
   };
 
   return (
@@ -205,6 +267,41 @@ const HomeContainer = () => {
               <SectionTitle>분석 결과</SectionTitle>
               <HighlightText result={data} />
             </HighlightsSection>
+
+            <SaveSection>
+              <Label htmlFor="document-title">문서 제목 (선택사항)</Label>
+              <GlassTextarea
+                id="document-title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="제목을 입력하지 않으면 텍스트 앞부분이 자동으로 제목이 됩니다"
+                rows={1}
+                disabled={isSaving}
+              />
+
+              <GlassButton
+                variant="primary"
+                size="md"
+                fullWidth
+                onClick={handleSaveDocument}
+                disabled={isSaving}
+                loading={isSaving}
+              >
+                {isSaving ? '저장 중...' : '분석 결과 저장'}
+              </GlassButton>
+
+              {saveSuccess && (
+                <SuccessMessage role="status">
+                  ✓ 문서가 성공적으로 저장되었습니다!
+                </SuccessMessage>
+              )}
+
+              {saveError && (
+                <ErrorMessage role="alert">
+                  <strong>저장 실패:</strong> {saveError.message || '문서 저장 중 오류가 발생했습니다.'}
+                </ErrorMessage>
+              )}
+            </SaveSection>
           </ResultsSection>
         )}
       </MainPanel>

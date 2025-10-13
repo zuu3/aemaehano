@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { score } from '@/utils/scoring';
-import { analyzeWithAI, analyzeWithLocalAI } from '@/services/ai-analysis.service';
+import { analyzeWithGemini, isGeminiConfigured } from '@/services/gemini-analysis.service';
 import type { AnalysisResult, Hit } from '@/types';
 
 const CATEGORY_REASONS: Record<Hit['cat'], string> = {
@@ -70,12 +70,37 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    // Gemini API 사용 여부 확인
+    if (isGeminiConfigured()) {
+      console.log('=== Using Gemini Analysis ===');
+
+      const geminiResult = await analyzeWithGemini(text);
+
+      const highlights = geminiResult.highlights.map(h => ({
+        start: h.start,
+        end: h.end,
+        category: h.category,
+        reason: h.reason,
+      }));
+
+      const result: AnalysisResult = {
+        original_text: text,
+        ambiguity_score: geminiResult.score,
+        highlights,
+        categories: geminiResult.categories,
+        suggestions: geminiResult.suggestions,
+      };
+
+      console.log('=== Gemini Result ===');
+      console.log('Score:', result.ambiguity_score);
+      console.log('Highlights:', result.highlights.length);
+
+      return NextResponse.json(result);
+    }
+
+    // Fallback: 기존 규칙 기반 분석
+    console.log('=== Using Rule-based Analysis (Fallback) ===');
     const scoreResult = score(text);
-    
-    console.log('=== Score Result ===');
-    console.log('Score:', scoreResult.score);
-    console.log('Hits:', scoreResult.hits.length);
-    console.log('Breakdown:', scoreResult.breakdown);
 
     const validScore = isNaN(scoreResult.score) ? 0 : Math.round(scoreResult.score);
 
@@ -88,27 +113,19 @@ export async function POST(req: NextRequest) {
 
     const categoriesSet = new Set(scoreResult.hits.map(hit => hit.cat));
     const categories = Array.from(categoriesSet);
-
     const basicSuggestions = generateSuggestions(validScore, categoriesSet);
-    
-    const aiAnalysis = process.env.HUGGINGFACE_API_KEY 
-      ? await analyzeWithAI(text)
-      : analyzeWithLocalAI(text);
-    
-    const allSuggestions = [...basicSuggestions, ...aiAnalysis.suggestions];
 
     const result: AnalysisResult = {
       original_text: text,
       ambiguity_score: validScore,
       highlights,
       categories,
-      suggestions: allSuggestions,
+      suggestions: basicSuggestions,
     };
 
-    console.log('=== Final Result ===');
-    console.log('Ambiguity Score:', result.ambiguity_score);
-    console.log('AI Tone:', aiAnalysis.tone);
-    console.log('AI Clarity:', aiAnalysis.clarity);
+    console.log('=== Rule-based Result ===');
+    console.log('Score:', result.ambiguity_score);
+    console.log('Hits:', result.highlights.length);
 
     return NextResponse.json(result);
   } catch (error) {

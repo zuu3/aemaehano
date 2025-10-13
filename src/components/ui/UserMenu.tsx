@@ -121,47 +121,47 @@ const UserMenu = () => {
   const { data: session } = useSession();
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-  
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
     };
-    
+
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-  
+
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setIsOpen(false);
       }
     };
-    
+
     if (isOpen) {
       document.addEventListener('keydown', handleEscape);
       return () => document.removeEventListener('keydown', handleEscape);
     }
   }, [isOpen]);
-  
+
   if (!session?.user) return null;
-  
+
   const user = session.user;
   const initials = user.name
     ? user.name
-        .split(' ')
-        .map(n => n[0])
-        .join('')
-        .toUpperCase()
-        .slice(0, 2)
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2)
     : user.email?.[0]?.toUpperCase() || 'U';
-  
+
   const handleSignOut = async () => {
     await signOut({ callbackUrl: '/login' });
   };
-  
+
   return (
     <MenuContainer ref={menuRef}>
       <UserButton
@@ -175,8 +175,18 @@ const UserMenu = () => {
         <UserAvatar aria-hidden="true">{initials}</UserAvatar>
         <UserName>{user.name || user.email}</UserName>
       </UserButton>
-      
+
       <Dropdown isOpen={isOpen} role="menu" aria-label="사용자 메뉴">
+        <DropdownItem
+          onClick={() => {
+            window.location.href = '/documents';
+            setIsOpen(false);
+          }}
+          role="menuitem"
+          aria-label="저장된 문서"
+        >
+          📄 저장된 문서
+        </DropdownItem>
         <DropdownItem
           onClick={handleSignOut}
           role="menuitem"

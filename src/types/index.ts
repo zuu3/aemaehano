@@ -42,3 +42,25 @@ export interface AnalysisResult {
 export interface AnalyzeRequest {
   text: string;
 }
+
+export interface Document {
+  id: string;
+  user_id: string;
+  title: string;
+  original_text: string;
+  ambiguity_score: number;
+  highlights: Highlight[];
+  categories: string[];
+  suggestions: string[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateDocumentRequest {
+  title: string;
+  original_text: string;
+  ambiguity_score: number;
+  highlights: Highlight[];
+  categories: string[];
+  suggestions: string[];
+}
