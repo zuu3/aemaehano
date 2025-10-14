@@ -28,13 +28,19 @@ export async function createDocument(
   userId: string,
   document: CreateDocumentRequest
 ): Promise<Document> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const insertData = {
+    user_id: userId,
+    title: document.title,
+    original_text: document.original_text,
+    ambiguity_score: document.ambiguity_score,
+    highlights: document.highlights,
+    categories: document.categories,
+    suggestions: document.suggestions,
+  };
+
   const { data, error } = await supabase
     .from('documents')
-    .insert({
-      user_id: userId,
-      ...document,
-    } as any)
+    .insert(insertData as never)
     .select()
     .single();
 

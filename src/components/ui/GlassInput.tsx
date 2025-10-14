@@ -40,9 +40,9 @@ const StyledInputWrapper = styled.div<BaseInputProps>`
   &:focus-within {
     background: ${({ theme }) => theme.glass.bgHover};
     border-color: ${({ theme, hasError }) =>
-    hasError ? theme.colors.danger : theme.colors.accent};
-    box-shadow: 0 0 0 3px ${({ theme, hasError }) =>
-    hasError ? 'rgba(255, 59, 48, 0.15)' : 'rgba(122, 165, 255, 0.15)'};
+      hasError ? theme.colors.danger : theme.colors.accent};
+    box-shadow: ${({ hasError }) =>
+      hasError ? '0 0 0 3px rgba(255, 59, 48, 0.15)' : '0 0 0 3px rgba(122, 165, 255, 0.15)'};
   }
   
   &:hover:not(:focus-within) {
