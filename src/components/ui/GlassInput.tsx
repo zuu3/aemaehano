@@ -10,26 +10,6 @@ interface GlassInputProps extends InputHTMLAttributes<HTMLInputElement>, BaseInp
 
 interface GlassTextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement>, BaseInputProps {}
 
-const inputStyles = `
-  width: 100%;
-  font-family: inherit;
-  font-size: inherit;
-  line-height: inherit;
-  color: inherit;
-  background: transparent;
-  border: none;
-  outline: none;
-  
-  &::placeholder {
-    color: ${({ theme }: any) => theme.text.tertiary};
-  }
-  
-  &:disabled {
-    cursor: not-allowed;
-    opacity: 0.5;
-  }
-`;
-
 const StyledInputWrapper = styled.div<BaseInputProps>`
   display: flex;
   align-items: center;
@@ -76,15 +56,48 @@ const StyledInputWrapper = styled.div<BaseInputProps>`
 `;
 
 const StyledInput = styled.input<GlassInputProps>`
+  width: 100%;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  color: inherit;
+  background: transparent;
+  border: none;
+  outline: none;
+  
+  &::placeholder {
+    color: ${({ theme }) => theme.text.tertiary};
+  }
+  
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
   ${inputStyles}
   height: 40px;
 `;
 
 const StyledTextarea = styled.textarea<GlassTextareaProps>`
-  ${inputStyles}
+  width: 100%;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  color: inherit;
+  background: transparent;
+  border: none;
+  outline: none;
   min-height: 120px;
   resize: vertical;
   padding: ${({ theme }) => theme.spacing.sm} 0;
+  
+  &::placeholder {
+    color: ${({ theme }) => theme.text.tertiary};
+  }
+  
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
 `;
 
 export const GlassInput = forwardRef<HTMLInputElement, GlassInputProps>(

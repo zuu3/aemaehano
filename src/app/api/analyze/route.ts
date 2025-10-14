@@ -13,6 +13,7 @@ const CATEGORY_REASONS: Record<Hit['cat'], string> = {
   filler: '불필요한 연결어입니다. 간결하게 작성하세요.',
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const CATEGORY_LABELS: Record<Hit['cat'], string> = {
   hedge: '불확실',
   vague: '모호',

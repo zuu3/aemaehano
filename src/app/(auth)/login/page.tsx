@@ -170,7 +170,7 @@ const LoginPage = () => {
       setIsLoading(true);
       setError(null);
       await signIn('google', { callbackUrl: '/' });
-    } catch (err) {
+    } catch {
       setError('로그인 중 오류가 발생했습니다. 다시 시도해주세요.');
       setIsLoading(false);
     }

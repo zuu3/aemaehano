@@ -191,6 +191,7 @@ export const createTheme = (mode: ColorMode = 'dark') => ({
 export type Theme = ReturnType<typeof createTheme>;
 
 declare module '@emotion/react' {
+  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
   export interface Theme extends ReturnType<typeof createTheme> {}
 }
 

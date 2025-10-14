@@ -17,13 +17,14 @@ export const authOptions: NextAuthOptions = {
         token.provider = 'google';
       }
       if (profile && 'name' in profile) {
-        token.name = (profile as any).name;
+        token.name = profile.name as string;
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
         session.user.name = token.name as string | undefined;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (session as any).provider = token.provider;
       }
       return session;

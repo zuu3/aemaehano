@@ -55,18 +55,16 @@ const ScoreGauge: React.FC<ScoreGaugeProps> = ({ score, size = 200 }) => {
     return Math.round(validScore);
   }, [score]);
   
-  const { color, glowColor, label } = useMemo(() => {
+  const { color, label } = useMemo(() => {
     if (normalizedScore >= 80) {
       return {
         color: theme.colors.success,
-        glowColor: 'rgba(52, 199, 89, 0.4)',
         label: '매우 명확',
       };
     }
     if (normalizedScore >= 60) {
       return {
         color: theme.colors.info,
-        glowColor: 'rgba(90, 200, 250, 0.4)',
         label: '명확',
       };
     }

@@ -125,8 +125,6 @@ async function generateRewriteSuggestions(text: string): Promise<RewriteSuggesti
       for (const match of matches) {
         const replacement = examples[Math.floor(Math.random() * examples.length)];
         
-        const improved = text.replace(match, `**${replacement}**`);
-        
         suggestions.push({
           original: match,
           improved: replacement,
@@ -138,8 +136,9 @@ async function generateRewriteSuggestions(text: string): Promise<RewriteSuggesti
 
   if (suggestions.length > 0) {
     let improvedText = text;
-    for (const { original, improved } of suggestions) {
-      improvedText = improvedText.replace(original, improved);
+    for (const { original } of suggestions) {
+      const replacement = suggestions.find(s => s.original === original)?.improved || original;
+      improvedText = improvedText.replace(original, replacement);
     }
     
     if (improvedText !== text) {
@@ -154,6 +153,7 @@ async function generateRewriteSuggestions(text: string): Promise<RewriteSuggesti
   return suggestions.slice(0, 5);
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function rewriteTextWithAI(text: string): Promise<string> {
   try {
     const prompt = `Improve this unclear Korean sentence to be more clear and specific. Remove vague expressions.\n\nOriginal: ${text}\n\nImproved:`;
@@ -210,8 +210,9 @@ function getReasonForReplacement(vagueTerm: string): string {
 function generateAISuggestions(
   text: string,
   tone: 'confident' | 'uncertain' | 'neutral',
-  clarity: number,
-  analysis: any
+  clarity: number
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
+  , analysis: any
 ): string[] {
   const suggestions: string[] = [];
 

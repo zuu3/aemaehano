@@ -129,11 +129,12 @@ export function score(text: string): ScoreResponse {
   const hits = detect(text);
   const words = text.trim().split(/\s+/).filter(Boolean).length;
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const catCount: Record<Hit['cat'], number> = {} as any;
   hits.forEach((h) => (catCount[h.cat] = (catCount[h.cat] ?? 0) + 1));
   let catPenalty = 0;
   for (const [cat, cnt] of Object.entries(catCount)) {
-    // @ts-ignore
+    // @ts-expect-error - Dynamic category key access
     const sev: number = cfg.categories[cat as keyof typeof cfg.categories].severity;
     const raw = cnt * sev * cfg.coefPerHit;
     catPenalty += Math.min(raw, cfg.caps.category);

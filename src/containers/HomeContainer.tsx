@@ -9,7 +9,6 @@ import ScoreGauge from '@/components/ui/ScoreGauge';
 import HighlightText from '@/components/ui/HighlightText';
 import { useAnalyze } from '@/hooks/useAnalyze';
 import { useCreateDocument } from '@/hooks/useDocuments';
-import type { AnalysisResult } from '@/types';
 
 const Container = styled.div`
   min-height: 100vh;
