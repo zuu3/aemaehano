@@ -6,7 +6,7 @@ const colors = {
   primary: '#007AFF',
   secondary: '#5856D6',
   accent: '#7aa5ff',
-  
+
   success: '#34C759',
   warning: '#FF9500',
   danger: '#FF3B30',
@@ -192,7 +192,7 @@ export type Theme = ReturnType<typeof createTheme>;
 
 declare module '@emotion/react' {
   // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-  export interface Theme extends ReturnType<typeof createTheme> {}
+  export interface Theme extends ReturnType<typeof createTheme> { }
 }
 
 export default createTheme('dark');

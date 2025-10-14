@@ -6,16 +6,16 @@ interface BaseInputProps {
   fullWidth?: boolean;
 }
 
-interface GlassInputProps extends InputHTMLAttributes<HTMLInputElement>, BaseInputProps {}
+interface GlassInputProps extends InputHTMLAttributes<HTMLInputElement>, BaseInputProps { }
 
-interface GlassTextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement>, BaseInputProps {}
+interface GlassTextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement>, BaseInputProps { }
 
 const StyledInputWrapper = styled.div<BaseInputProps>`
   display: flex;
   align-items: center;
   background: ${({ theme }) => theme.glass.bg};
   backdrop-filter: blur(${({ theme }) => theme.effects.blur.md});
-  border: 1px solid ${({ theme, hasError }) => 
+  border: 1px solid ${({ theme, hasError }) =>
     hasError ? theme.colors.danger : theme.glass.stroke};
   border-radius: ${({ theme }) => theme.effects.radius.lg};
   padding: ${({ theme }) => theme.spacing.sm} ${({ theme }) => theme.spacing.md};
@@ -39,10 +39,10 @@ const StyledInputWrapper = styled.div<BaseInputProps>`
   
   &:focus-within {
     background: ${({ theme }) => theme.glass.bgHover};
-    border-color: ${({ theme, hasError }) => 
-      hasError ? theme.colors.danger : theme.colors.accent};
-    box-shadow: 0 0 0 3px ${({ theme, hasError }) => 
-      hasError ? 'rgba(255, 59, 48, 0.15)' : 'rgba(122, 165, 255, 0.15)'};
+    border-color: ${({ theme, hasError }) =>
+    hasError ? theme.colors.danger : theme.colors.accent};
+    box-shadow: 0 0 0 3px ${({ theme, hasError }) =>
+    hasError ? 'rgba(255, 59, 48, 0.15)' : 'rgba(122, 165, 255, 0.15)'};
   }
   
   &:hover:not(:focus-within) {
@@ -73,7 +73,7 @@ const StyledInput = styled.input<GlassInputProps>`
     cursor: not-allowed;
     opacity: 0.5;
   }
-  ${inputStyles}
+  
   height: 40px;
 `;
 

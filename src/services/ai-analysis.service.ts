@@ -50,7 +50,7 @@ async function analyzeSentimentWithHF(text: string) {
     const topResult = result[0];
     const stars = parseInt(topResult.label.split(' ')[0]);
     const score = (stars / 5) * 100;
-    
+
     return {
       label: stars >= 4 ? 'positive' : stars <= 2 ? 'negative' : 'neutral',
       score: score,
@@ -63,17 +63,17 @@ async function analyzeSentimentWithHF(text: string) {
 
 function analyzeUncertaintyLocal(text: string) {
   const uncertainWords = [
-    '아마', '것 같', '듯', '혹시', '조만간', '적당히', 
+    '아마', '것 같', '듯', '혹시', '조만간', '적당히',
     '좀', '약간', '대충', '나중에', '언젠가', '그쪽', '여기저기'
   ];
   const confidentWords = ['확실히', '반드시', '명확히', '정확히', '구체적으로', '분명히'];
-  
+
   const uncertainCount = uncertainWords.filter(w => text.includes(w)).length;
   const confidentCount = confidentWords.filter(w => text.includes(w)).length;
-  
+
   const confidence = Math.max(0, Math.min(100, 70 - uncertainCount * 12 + confidentCount * 8));
   const clarity = Math.max(0, 100 - uncertainCount * 15);
-  
+
   const issues: string[] = [];
   if (text.length < 20) {
     issues.push('문장이 너무 짧아 문맥 파악이 어렵습니다.');
@@ -92,7 +92,7 @@ function determineTone(
   if (localAnalysis.uncertainCount > 2) {
     return 'uncertain';
   }
-  
+
   if (localAnalysis.confidentCount > 1) {
     return 'confident';
   }
@@ -102,13 +102,13 @@ function determineTone(
   } else if (hfResult.score < 40) {
     return 'uncertain';
   }
-  
+
   return 'neutral';
 }
 
 async function generateRewriteSuggestions(text: string): Promise<RewriteSuggestion[]> {
   const suggestions: RewriteSuggestion[] = [];
-  
+
   const vaguePatterns = [
     { pattern: /조만간/g, examples: ['3월 15일', '이번 주 금요일', '2주 내'] },
     { pattern: /그쪽|저쪽|여기/g, examples: ['서울 본사', '강남 사무실', '회의실 A'] },
@@ -124,7 +124,7 @@ async function generateRewriteSuggestions(text: string): Promise<RewriteSuggesti
     if (matches) {
       for (const match of matches) {
         const replacement = examples[Math.floor(Math.random() * examples.length)];
-        
+
         suggestions.push({
           original: match,
           improved: replacement,
@@ -140,7 +140,7 @@ async function generateRewriteSuggestions(text: string): Promise<RewriteSuggesti
       const replacement = suggestions.find(s => s.original === original)?.improved || original;
       improvedText = improvedText.replace(original, replacement);
     }
-    
+
     if (improvedText !== text) {
       suggestions.push({
         original: text,
@@ -157,7 +157,7 @@ async function generateRewriteSuggestions(text: string): Promise<RewriteSuggesti
 async function rewriteTextWithAI(text: string): Promise<string> {
   try {
     const prompt = `Improve this unclear Korean sentence to be more clear and specific. Remove vague expressions.\n\nOriginal: ${text}\n\nImproved:`;
-    
+
     const result = await hf.textGeneration({
       model: 'facebook/mbart-large-50-many-to-many-mmt',
       inputs: prompt,
@@ -169,7 +169,7 @@ async function rewriteTextWithAI(text: string): Promise<string> {
     });
     let improved = result.generated_text.trim();
     improved = improved.replace(/^Improved:|^개선:|^답:/g, '').trim();
-    
+
     return improved || '';
   } catch (error) {
     console.error('AI 재작성 실패 (정상 - 로컬 제안 사용):', error);
@@ -229,7 +229,7 @@ function generateAISuggestions(
   }
 
   const hasNumbers = /\d/.test(text);
-  
+
   if (!hasNumbers && text.length > 50) {
     suggestions.push('🤖 AI 제안: 구체적인 수치나 날짜를 추가하면 신뢰도가 크게 향상됩니다.');
   }
@@ -248,13 +248,13 @@ function generateAISuggestions(
 export function analyzeWithLocalAI(text: string): AIAnalysisResult {
   const uncertainWords = ['아마', '것 같', '듯', '혹시', '조만간', '적당히', '좀', '약간'];
   const confidentWords = ['확실히', '반드시', '명확히', '정확히', '구체적으로'];
-  
+
   const uncertainCount = uncertainWords.filter(w => text.includes(w)).length;
   const confidentCount = confidentWords.filter(w => text.includes(w)).length;
-  
+
   let tone: 'confident' | 'uncertain' | 'neutral' = 'neutral';
   let confidence = 50;
-  
+
   if (uncertainCount > confidentCount) {
     tone = 'uncertain';
     confidence = Math.max(20, 50 - uncertainCount * 10);
@@ -262,23 +262,23 @@ export function analyzeWithLocalAI(text: string): AIAnalysisResult {
     tone = 'confident';
     confidence = Math.min(90, 50 + confidentCount * 10);
   }
-  
+
   const clarity = Math.max(0, 100 - uncertainCount * 15);
-  
+
   const suggestions: string[] = [];
   if (tone === 'uncertain') {
     suggestions.push('💡 AI 인사이트: 불확실한 표현을 제거하고 명확한 정보를 제공하세요.');
   }
-  
+
   const hasNumbers = /\d/.test(text);
   if (!hasNumbers && text.length > 50) {
     suggestions.push('💡 AI 인사이트: 구체적인 수치나 데이터를 추가하면 신뢰성이 높아집니다.');
   }
-  
+
   const context_issues: string[] = [];
   if (text.length < 20) {
     context_issues.push('문장이 너무 짧습니다.');
   }
-  
+
   return { confidence, tone, clarity, suggestions, context_issues };
 }

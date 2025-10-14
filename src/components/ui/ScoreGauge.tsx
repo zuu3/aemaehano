@@ -44,17 +44,17 @@ const ScoreLabel = styled.div`
 
 const ScoreGauge: React.FC<ScoreGaugeProps> = ({ score, size = 200 }) => {
   const theme = useTheme();
-  
+
   const normalizedScore = useMemo(() => {
     if (score === null || score === undefined || isNaN(score)) {
       console.warn('Invalid score received:', score);
       return 0;
     }
-    
+
     const validScore = Math.min(Math.max(Number(score), 0), 100);
     return Math.round(validScore);
   }, [score]);
-  
+
   const { color, label } = useMemo(() => {
     if (normalizedScore >= 80) {
       return {
@@ -88,22 +88,22 @@ const ScoreGauge: React.FC<ScoreGaugeProps> = ({ score, size = 200 }) => {
       label: '매우 모호함',
     };
   }, [normalizedScore, theme]);
-  
+
   const radius = (size - 40) / 2;
   const strokeWidth = 12;
   const center = size / 2;
-  
+
   const startAngle = 135;
   const endAngle = 405;
   const scoreAngle = startAngle + (normalizedScore / 100) * 270;
-  
+
   const describeArc = (startAngle: number, endAngle: number) => {
     const start = polarToCartesian(center, center, radius, endAngle);
     const end = polarToCartesian(center, center, radius, startAngle);
     const largeArcFlag = endAngle - startAngle <= 180 ? '0' : '1';
     return `M ${start.x} ${start.y} A ${radius} ${radius} 0 ${largeArcFlag} 0 ${end.x} ${end.y}`;
   };
-  
+
   function polarToCartesian(centerX: number, centerY: number, radius: number, angleInDegrees: number) {
     const angleInRadians = ((angleInDegrees - 90) * Math.PI) / 180.0;
     return {
@@ -111,10 +111,10 @@ const ScoreGauge: React.FC<ScoreGaugeProps> = ({ score, size = 200 }) => {
       y: centerY + radius * Math.sin(angleInRadians),
     };
   }
-  
+
   const backgroundPath = describeArc(startAngle, endAngle);
   const scorePath = describeArc(startAngle, scoreAngle);
-  
+
   return (
     <GaugeContainer>
       <GaugeSvg
@@ -132,13 +132,13 @@ const ScoreGauge: React.FC<ScoreGaugeProps> = ({ score, size = 200 }) => {
               <feMergeNode in="SourceGraphic" />
             </feMerge>
           </filter>
-          
+
           <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="0%">
             <stop offset="0%" stopColor={color} stopOpacity="0.8" />
             <stop offset="100%" stopColor={color} stopOpacity="1" />
           </linearGradient>
         </defs>
-        
+
         <path
           d={backgroundPath}
           fill="none"
@@ -147,7 +147,7 @@ const ScoreGauge: React.FC<ScoreGaugeProps> = ({ score, size = 200 }) => {
           strokeLinecap="round"
           opacity="0.3"
         />
-        
+
         <path
           d={backgroundPath}
           fill="none"
@@ -157,7 +157,7 @@ const ScoreGauge: React.FC<ScoreGaugeProps> = ({ score, size = 200 }) => {
           opacity="0.5"
           style={{ filter: 'blur(8px)' }}
         />
-        
+
         <path
           d={scorePath}
           fill="none"
@@ -181,7 +181,7 @@ const ScoreGauge: React.FC<ScoreGaugeProps> = ({ score, size = 200 }) => {
             transform: `translate(0, -${strokeWidth / 2 + 1}px)`,
           }}
         />
-        
+
         <circle
           cx={center}
           cy={center}
@@ -191,7 +191,7 @@ const ScoreGauge: React.FC<ScoreGaugeProps> = ({ score, size = 200 }) => {
           strokeWidth="2"
         />
       </GaugeSvg>
-      
+
       <ScoreText>
         <ScoreValue style={{ color }}>
           {normalizedScore}
