@@ -142,6 +142,29 @@ export async function analyzeWithGemini(text: string): Promise<GeminiAnalysisRes
       analysis.suggestions = [];
     }
 
+    // 하이라이트 위치 검증 및 수정
+    analysis.highlights = analysis.highlights.map(highlight => {
+      const highlightText = highlight.text;
+      // 원본 텍스트에서 실제 위치 찾기
+      const actualStart = text.indexOf(highlightText);
+      
+      if (actualStart !== -1) {
+        // 실제 위치를 찾았으면 업데이트
+        return {
+          ...highlight,
+          start: actualStart,
+          end: actualStart + highlightText.length,
+        };
+      }
+      
+      // 찾지 못했으면 원래 값 사용 (하지만 범위 체크)
+      return {
+        ...highlight,
+        start: Math.max(0, Math.min(highlight.start, text.length)),
+        end: Math.max(0, Math.min(highlight.end, text.length)),
+      };
+    });
+
     return analysis;
   } catch (error) {
     console.error('Gemini API error:', error);
