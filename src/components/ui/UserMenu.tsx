@@ -146,7 +146,18 @@ const UserMenu = () => {
     }
   }, [isOpen]);
 
-  if (!session?.user) return null;
+  if (!session?.user) {
+    return (
+      <GlassButton
+        variant="primary"
+        size="sm"
+        onClick={() => window.location.href = '/login'}
+        aria-label="로그인"
+      >
+        로그인
+      </GlassButton>
+    );
+  }
 
   const user = session.user;
   const initials = user.name
