@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai';
 import type { Hit } from '@/types';
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
@@ -18,12 +18,32 @@ interface GeminiAnalysisResult {
 
 export async function analyzeWithGemini(text: string): Promise<GeminiAnalysisResult> {
   try {
-    const model = genAI.getGenerativeModel({ 
-      model: 'gemini-2.5-flash',
+    const model = genAI.getGenerativeModel({
+      model: 'gemini-2.0-flash-exp',
       generationConfig: {
-        temperature: 0.7,
+        temperature: 0.3,
         maxOutputTokens: 2048,
+        topP: 0.8,
+        topK: 40,
       },
+      safetySettings: [
+        {
+          category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+          threshold: HarmBlockThreshold.BLOCK_NONE,
+        },
+        {
+          category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+          threshold: HarmBlockThreshold.BLOCK_NONE,
+        },
+        {
+          category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+          threshold: HarmBlockThreshold.BLOCK_NONE,
+        },
+        {
+          category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+          threshold: HarmBlockThreshold.BLOCK_NONE,
+        },
+      ],
     });
 
     const prompt = `다음 한국어 텍스트에서 애매하고 불확실한 표현을 찾아주세요.
@@ -69,17 +89,29 @@ export async function analyzeWithGemini(text: string): Promise<GeminiAnalysisRes
       timeoutPromise
     ]);
     const response = await result.response;
+
+    console.log('=== Gemini Response Status ===');
+    console.log('Candidates:', response.candidates?.length);
+    console.log('PromptFeedback:', response.promptFeedback);
+
     const responseText = response.text();
 
     console.log('=== Gemini Raw Response ===');
-    console.log(responseText);
+    console.log('Length:', responseText.length);
+    console.log('Text:', responseText);
+
+    // 빈 응답 체크
+    if (!responseText || responseText.trim().length === 0) {
+      console.error('Empty response from Gemini');
+      throw new Error('Empty response from Gemini API');
+    }
 
     // JSON 파싱 (마크다운 코드블록 제거)
     let jsonText = responseText.trim();
-    
+
     // ```json ... ``` 형태 제거
     jsonText = jsonText.replace(/^```json?\s*/i, '').replace(/```\s*$/, '');
-    
+
     // JSON 객체 추출
     const jsonMatch = jsonText.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
