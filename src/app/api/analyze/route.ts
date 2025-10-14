@@ -5,6 +5,9 @@ import { score } from '@/utils/scoring';
 import { analyzeWithGemini, isGeminiConfigured } from '@/services/gemini-analysis.service';
 import type { AnalysisResult, Hit } from '@/types';
 
+// API 라우트 타임아웃 설정 (초 단위) - Vercel Hobby plan은 최대 10초
+export const maxDuration = 30;
+
 const CATEGORY_REASONS: Record<Hit['cat'], string> = {
   hedge: '불확실한 표현입니다. 단정적으로 서술하세요.',
   vague: '모호한 표현입니다. 구체적으로 명시하세요.',
