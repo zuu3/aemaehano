@@ -359,7 +359,7 @@ export default function DashboardPage() {
             {stats.topIssues.map(({ category, count }, index) => (
               <IssueItem key={category}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <Badge variant={category as any}>
+                  <Badge variant="warning">
                     #{index + 1}
                   </Badge>
                   <IssueName>{categoryLabels[category] || category}</IssueName>

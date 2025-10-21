@@ -284,6 +284,31 @@ const HomeContainer = () => {
     }
   }, [debouncedText, isRealtimeEnabled, selectedMode, analyze]);
 
+  // 문서 저장 함수 먼저 정의
+  const handleSaveDocument = () => {
+    if (!data) return;
+
+    const documentTitle = title.trim() || text.substring(0, 50) + (text.length > 50 ? '...' : '');
+
+    saveDocument(
+      {
+        title: documentTitle,
+        original_text: data.original_text,
+        ambiguity_score: data.ambiguity_score,
+        highlights: data.highlights,
+        categories: data.categories,
+        suggestions: data.suggestions,
+        analysis_mode: selectedMode, // 선택된 모드 저장
+      },
+      {
+        onSuccess: () => {
+          setSaveSuccess(true);
+          setTimeout(() => setSaveSuccess(false), 3000);
+        },
+      }
+    );
+  };
+
   // Ctrl+S 키보드 단축키로 문서 저장
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -299,7 +324,7 @@ const HomeContainer = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [data, isSaving]); // handleSaveDocument는 아래에서 정의됨
+  }, [data, isSaving, handleSaveDocument]);
 
   if (data) {
     console.log('=== 분석 결과 ===');
@@ -327,30 +352,6 @@ const HomeContainer = () => {
       // 개선된 텍스트로 다시 분석
       analyze({ text: data.improved_text, mode: selectedMode });
     }
-  };
-
-  const handleSaveDocument = () => {
-    if (!data) return;
-
-    const documentTitle = title.trim() || text.substring(0, 50) + (text.length > 50 ? '...' : '');
-
-    saveDocument(
-      {
-        title: documentTitle,
-        original_text: data.original_text,
-        ambiguity_score: data.ambiguity_score,
-        highlights: data.highlights,
-        categories: data.categories,
-        suggestions: data.suggestions,
-        analysis_mode: selectedMode, // 선택된 모드 저장
-      },
-      {
-        onSuccess: () => {
-          setSaveSuccess(true);
-          setTimeout(() => setSaveSuccess(false), 3000);
-        },
-      }
-    );
   };
 
   return (
