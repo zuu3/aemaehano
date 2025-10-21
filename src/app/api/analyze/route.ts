@@ -2,11 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { score } from '@/utils/scoring';
-import { analyzeWithGemini, isGeminiConfigured } from '@/services/gemini-analysis.service';
-import type { AnalysisResult, Hit } from '@/types';
+import { analyzeWithGemini, isGeminiConfigured, improveTextWithGemini } from '@/services/gemini-analysis.service';
+import type { AnalysisResult, Hit, AnalysisMode } from '@/types';
 
-// API 라우트 타임아웃 설정 (초 단위) - Vercel Hobby plan은 최대 10초
-export const maxDuration = 30;
+// API 라우트 타임아웃 설정 (초 단위) - Gemini 응답 대기 시간 고려
+export const maxDuration = 60; // 60초로 증가
 
 const CATEGORY_REASONS: Record<Hit['cat'], string> = {
   hedge: '불확실한 표현입니다. 단정적으로 서술하세요.',
@@ -68,17 +68,23 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }
 
-  const { text } = await req.json().catch(() => ({}));
+  const { text, mode = 'business' } = await req.json().catch(() => ({}));
   if (!text || typeof text !== 'string') {
     return NextResponse.json({ error: 'text required' }, { status: 400 });
   }
+
+  // mode 유효성 검증
+  const validModes: AnalysisMode[] = ['business', 'blog', 'casual', 'academic', 'creative'];
+  const analysisMode: AnalysisMode = validModes.includes(mode) ? mode : 'business';
 
   try {
     // Gemini API 사용 여부 확인
     if (isGeminiConfigured()) {
       console.log('=== Using Gemini Analysis ===');
+      console.log('Mode:', analysisMode);
 
-      const geminiResult = await analyzeWithGemini(text);
+      // 먼저 분석 수행 (모드 전달)
+      const geminiResult = await analyzeWithGemini(text, analysisMode);
 
       const highlights = geminiResult.highlights.map(h => ({
         start: h.start,
@@ -87,17 +93,28 @@ export async function POST(req: NextRequest) {
         reason: h.reason,
       }));
 
+      // 문제가 있을 때만 개선 텍스트 생성 (점수가 80 미만 또는 하이라이트가 있을 때)
+      let improvedText: string | undefined;
+      if (geminiResult.score < 80 && geminiResult.highlights.length > 0) {
+        improvedText = await improveTextWithGemini(text, analysisMode);
+      }
+
       const result: AnalysisResult = {
         original_text: text,
         ambiguity_score: geminiResult.score,
         highlights,
         categories: geminiResult.categories,
         suggestions: geminiResult.suggestions,
+        improved_text: improvedText,
+        analysis_mode: analysisMode,
       };
 
       console.log('=== Gemini Result ===');
       console.log('Score:', result.ambiguity_score);
       console.log('Highlights:', result.highlights.length);
+      if (improvedText) {
+        console.log('Improved:', improvedText.substring(0, 50) + '...');
+      }
 
       return NextResponse.json(result);
     }

@@ -1,5 +1,6 @@
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai';
-import type { Hit } from '@/types';
+import type { Hit, AnalysisMode } from '@/types';
+import { getAnalysisPrompt, getImprovementPrompt } from '@/utils/analysisPrompts';
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
@@ -16,13 +17,19 @@ interface GeminiAnalysisResult {
   suggestions: string[];
 }
 
-export async function analyzeWithGemini(text: string): Promise<GeminiAnalysisResult> {
+export async function analyzeWithGemini(
+  text: string,
+  mode: AnalysisMode = 'business'
+): Promise<GeminiAnalysisResult> {
   try {
+    // 텍스트 길이 제한 (약 3000자까지)
+    const truncatedText = text.length > 3000 ? text.substring(0, 3000) + '...' : text;
+
     const model = genAI.getGenerativeModel({
-      model: 'gemini-2.0-flash-exp',
+      model: 'gemini-2.5-flash', // 250회/일 무료
       generationConfig: {
         temperature: 0.3,
-        maxOutputTokens: 2048,
+        maxOutputTokens: 4096, // 토큰 한도 증가
         topP: 0.8,
         topK: 40,
       },
@@ -46,16 +53,12 @@ export async function analyzeWithGemini(text: string): Promise<GeminiAnalysisRes
       ],
     });
 
-    const prompt = `다음 한국어 텍스트에서 애매하고 불확실한 표현을 찾아주세요.
+    // 모드별 프롬프트 가져오기
+    const modePrompt = getAnalysisPrompt(mode);
 
-텍스트: "${text}"
+    const prompt = `${modePrompt}
 
-애매한 표현 카테고리:
-1. hedge: 불확실한 표현 (예: 아마도, ~것 같다, ~할까, ~말까)
-2. vague: 모호한 표현 (예: 좀, 약간, 어느정도)
-3. softener: 완곡한 표현 (예: 개인적으로, 혹시)
-4. apology: 불필요한 사과 (예: 죄송, 미안)
-5. filler: 불필요한 표현 (예: 아무튼, 근데)
+텍스트: "${truncatedText}"
 
 다음 JSON 형식으로만 응답하세요:
 {
@@ -74,14 +77,15 @@ export async function analyzeWithGemini(text: string): Promise<GeminiAnalysisRes
 }
 
 참고:
-- score는 0-100 사이 숫자 (낮을수록 애매함)
-- highlights는 찾은 모든 애매한 표현 배열
+- score는 0-100 사이 숫자
+- highlights는 찾은 모든 문제점 배열
 - start/end는 텍스트 내 위치 (인덱스)
+- category는 hedge, vague, softener, apology, filler 중 하나
 - 다른 설명 없이 JSON만 출력하세요`;
 
-    // 타임아웃 설정 (25초)
+    // 타임아웃 설정 (60초로 증가)
     const timeoutPromise = new Promise<never>((_, reject) => {
-      setTimeout(() => reject(new Error('Gemini API timeout')), 25000);
+      setTimeout(() => reject(new Error('Gemini API timeout')), 60000);
     });
 
     const result = await Promise.race([
@@ -94,15 +98,40 @@ export async function analyzeWithGemini(text: string): Promise<GeminiAnalysisRes
     console.log('Candidates:', response.candidates?.length);
     console.log('PromptFeedback:', response.promptFeedback);
 
-    const responseText = response.text();
+    // Safety rating 체크
+    if (response.candidates && response.candidates.length > 0) {
+      const candidate = response.candidates[0];
+      console.log('Finish Reason:', candidate.finishReason);
+      console.log('Safety Ratings:', candidate.safetyRatings);
+
+      // SAFETY로 차단되었는지 확인
+      if (candidate.finishReason === 'SAFETY') {
+        console.warn('Response blocked by safety filter');
+      }
+    }
+
+    let responseText = '';
+    try {
+      responseText = response.text();
+    } catch (error) {
+      console.error('Error getting response text:', error);
+      // text() 메서드 실패 시 candidates에서 직접 추출 시도
+      if (response.candidates && response.candidates.length > 0) {
+        const candidate = response.candidates[0];
+        if (candidate.content && candidate.content.parts && candidate.content.parts.length > 0) {
+          responseText = candidate.content.parts[0].text || '';
+        }
+      }
+    }
 
     console.log('=== Gemini Raw Response ===');
     console.log('Length:', responseText.length);
-    console.log('Text:', responseText);
+    console.log('Text:', responseText.substring(0, 200));
 
     // 빈 응답 체크
     if (!responseText || responseText.trim().length === 0) {
       console.error('Empty response from Gemini');
+      console.error('Full response object:', JSON.stringify(response, null, 2));
       throw new Error('Empty response from Gemini API');
     }
 
@@ -147,7 +176,7 @@ export async function analyzeWithGemini(text: string): Promise<GeminiAnalysisRes
       const highlightText = highlight.text;
       // 원본 텍스트에서 실제 위치 찾기
       const actualStart = text.indexOf(highlightText);
-      
+
       if (actualStart !== -1) {
         // 실제 위치를 찾았으면 업데이트
         return {
@@ -156,7 +185,7 @@ export async function analyzeWithGemini(text: string): Promise<GeminiAnalysisRes
           end: actualStart + highlightText.length,
         };
       }
-      
+
       // 찾지 못했으면 원래 값 사용 (하지만 범위 체크)
       return {
         ...highlight,
@@ -184,4 +213,85 @@ export async function analyzeWithGemini(text: string): Promise<GeminiAnalysisRes
 
 export function isGeminiConfigured(): boolean {
   return !!process.env.GEMINI_API_KEY;
+}
+
+export async function improveTextWithGemini(
+  originalText: string,
+  mode: AnalysisMode = 'business'
+): Promise<string> {
+  try {
+    // 텍스트 길이 제한
+    const truncatedText = originalText.length > 2000 ? originalText.substring(0, 2000) + '...' : originalText;
+
+    const model = genAI.getGenerativeModel({
+      model: 'gemini-2.5-flash', // 250회/일 무료
+      generationConfig: {
+        temperature: 0.5,
+        maxOutputTokens: 4096, // 토큰 한도 증가
+      },
+      safetySettings: [
+        {
+          category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+          threshold: HarmBlockThreshold.BLOCK_NONE,
+        },
+        {
+          category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+          threshold: HarmBlockThreshold.BLOCK_NONE,
+        },
+        {
+          category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+          threshold: HarmBlockThreshold.BLOCK_NONE,
+        },
+        {
+          category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+          threshold: HarmBlockThreshold.BLOCK_NONE,
+        },
+      ],
+    });
+
+    // 모드별 개선 프롬프트 가져오기
+    const improvementGuideline = getImprovementPrompt(mode);
+
+    const prompt = `다음 한국어 텍스트를 개선해주세요.
+
+원본 텍스트: "${truncatedText}"
+
+${improvementGuideline}
+
+개선된 텍스트만 출력하세요. 설명이나 다른 내용은 포함하지 마세요.`;
+
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      setTimeout(() => reject(new Error('Gemini API timeout')), 60000);
+    });
+
+    const result = await Promise.race([
+      model.generateContent(prompt),
+      timeoutPromise
+    ]);
+    const response = await result.response;
+
+    console.log('=== Improve Text Response Status ===');
+    console.log('Candidates:', response.candidates?.length);
+
+    const improvedText = response.text().trim();
+
+    console.log('Improved text length:', improvedText.length);
+
+    // 빈 응답 체크
+    if (!improvedText || improvedText.trim().length === 0) {
+      console.warn('Empty improved text, returning original');
+      return originalText;
+    }
+
+    // 따옴표나 마크다운 제거
+    let cleaned = improvedText;
+    cleaned = cleaned.replace(/^["']|["']$/g, '');
+    cleaned = cleaned.replace(/^```.*\n?|```$/g, '');
+
+    return cleaned || originalText;
+  } catch (error) {
+    console.error('Gemini improve text error:', error);
+    // 에러 시 원본 반환
+    return originalText;
+  }
 }

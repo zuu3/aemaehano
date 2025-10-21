@@ -1,3 +1,6 @@
+// 분석 모드 타입
+export type AnalysisMode = 'business' | 'blog' | 'casual' | 'academic' | 'creative';
+
 export interface Hit {
   term: string;
   cat: 'hedge' | 'vague' | 'softener' | 'apology' | 'filler';
@@ -36,11 +39,14 @@ export interface AnalysisResult {
   highlights: Highlight[];
   categories: string[];
   suggestions: string[];
+  improved_text?: string;
   rewriteSuggestions?: RewriteSuggestion[];
+  analysis_mode?: AnalysisMode;
 }
 
 export interface AnalyzeRequest {
   text: string;
+  mode?: AnalysisMode;
 }
 
 export interface Document {
@@ -52,6 +58,7 @@ export interface Document {
   highlights: Highlight[];
   categories: string[];
   suggestions: string[];
+  analysis_mode?: AnalysisMode; // 추가
   created_at: string;
   updated_at: string;
 }
@@ -62,5 +69,6 @@ export interface CreateDocumentRequest {
   ambiguity_score: number;
   highlights: Highlight[];
   categories: string[];
+  analysis_mode?: AnalysisMode; // 추가
   suggestions: string[];
 }

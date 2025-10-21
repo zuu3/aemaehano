@@ -36,6 +36,7 @@ export async function createDocument(
     highlights: document.highlights,
     categories: document.categories,
     suggestions: document.suggestions,
+    analysis_mode: document.analysis_mode, // 추가!
   };
 
   const { data, error } = await supabase

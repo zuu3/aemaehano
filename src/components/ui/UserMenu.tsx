@@ -190,6 +190,16 @@ const UserMenu = () => {
       <Dropdown isOpen={isOpen} role="menu" aria-label="사용자 메뉴">
         <DropdownItem
           onClick={() => {
+            window.location.href = '/dashboard';
+            setIsOpen(false);
+          }}
+          role="menuitem"
+          aria-label="대시보드"
+        >
+          📊 대시보드
+        </DropdownItem>
+        <DropdownItem
+          onClick={() => {
             window.location.href = '/documents';
             setIsOpen(false);
           }}
